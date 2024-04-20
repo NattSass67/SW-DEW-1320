@@ -241,8 +241,19 @@ const getBookingById = async (req, res) => {
         const values = [bookingId];
         const client = await pool.connect();
         const result = await client.query(query, values);
-        const bookings = result.rows;
-        res.status(200).json({ success: true, data: bookings });
+        const booking = result.rows[0];
+         // If the booking doesn't exist, return a 404 error
+         if (!booking) {
+            client.release();
+            return res.status(404).json({ error: 'Booking not found' });
+        }
+
+        // Check if the user owns this booking
+        if (req.user.id !== booking.user_id) {
+            client.release();
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+        res.status(200).json({ success: true, data: booking });
         client.release();
     } catch (error) {
         console.error('Error fetching user bookings:', error);
