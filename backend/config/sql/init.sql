@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS bookings (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id VARCHAR(36) REFERENCES users(id),
     dentist_id VARCHAR(36) REFERENCES dentists(id),
-    booking_date DATE NOT NULL
+    booking_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    booking_status VARCHAR(20) DEFAULT 'pending' CHECK (booking_status IN ('pending', 'complete'))
 );
 
 INSERT INTO

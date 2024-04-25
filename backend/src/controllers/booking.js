@@ -28,6 +28,9 @@ const createBooking = async (req, res) => {
 // GET /api/bookings/user
 const getBookingByUserID = async (req, res) => {
     try {
+
+        await updateExpiredBookingsByuserId(req.user.id);
+
         const query = `
             SELECT * FROM bookings
             WHERE user_id = $1;
@@ -234,6 +237,8 @@ const deleteBookingAdmin = async (req, res) => {
 const getBookingById = async (req, res) => {
     try {
         const bookingId = req.params.id;
+
+        await updateExpiredBookingByBookingId(bookingId);
         const query = `
             SELECT * FROM bookings
             WHERE id = $1;
@@ -260,6 +265,51 @@ const getBookingById = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 }
+
+
+const updateExpiredBookingsByuserId = async (userId) => {
+    try {
+        // Update the status of bookings for the specified user ID where the booking date has passed
+        const client = await pool.connect();
+        const currentDate = new Date();
+        const query = `
+            UPDATE bookings
+            SET booking_status = 'complete'
+            WHERE user_id = $1 AND booking_date <= $2 AND booking_status = 'pending';
+        `;
+        const values = [userId, currentDate];
+        await client.query(query, values);
+        client.release();
+        console.log(`Expired bookings updated successfully for user ${userId}`);
+    } catch (error) {
+        console.error('Error updating expired bookings:', error);
+        throw error;
+    }
+};
+
+const updateExpiredBookingByBookingId = async (bookingId) => {
+    try {
+        // Update the status of the specified booking if the booking date has passed
+        const client = await pool.connect();
+        const currentDate = new Date();
+        const query = `
+            UPDATE bookings
+            SET booking_status = 'complete'
+            WHERE id = $1 AND booking_date <= $2 AND booking_status = 'pending';
+        `;
+        const values = [bookingId, currentDate];
+        await client.query(query, values);
+        client.release();
+        
+        console.log(`Expired booking ${bookingId} updated successfully`);
+    } catch (error) {
+        console.error(`Error updating expired booking ${bookingId}:`, error);
+        throw error;
+    }
+};
+
+
+
 
 module.exports = { getBookingById, createBooking, getAllBookingAdmin, getBookingByUserID, deleteBooking, deleteBookingAdmin, updateBooking, updateBookingAdmin }
 
