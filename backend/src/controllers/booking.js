@@ -32,9 +32,12 @@ const getBookingByUserID = async (req, res) => {
         await updateExpiredBookingsByuserId(req.user.id);
 
         const query = `
-            SELECT * FROM bookings
-            WHERE user_id = $1;
+            SELECT b.*, d.name AS dentist_name, d.experience AS dentist_experience, d.expertise AS dentist_expertise
+            FROM bookings b
+            INNER JOIN dentists d ON b.dentist_id = d.id
+            WHERE b.user_id = $1;
         `;
+
         const values = [req.user.id];
         const client = await pool.connect();
         const result = await client.query(query, values);
@@ -147,7 +150,9 @@ const deleteBooking = async (req, res) => {
 const getAllBookingAdmin = async (req, res) => {
     try {
         const query = `
-            SELECT * FROM bookings;
+        SELECT b.*, d.name AS dentist_name, d.experience AS dentist_experience, d.expertise AS dentist_expertise
+        FROM bookings b
+        INNER JOIN dentists d ON b.dentist_id = d.id
         `;
         const client = await pool.connect();
         const result = await client.query(query);
@@ -241,8 +246,9 @@ const getBookingById = async (req, res) => {
 
         await updateExpiredBookingByBookingId(bookingId);
         const query = `
-            SELECT * FROM bookings
-            WHERE id = $1;
+        SELECT b.*, d.name AS dentist_name, d.experience AS dentist_experience, d.expertise AS dentist_expertise
+        FROM bookings b
+        INNER JOIN dentists d ON b.dentist_id = d.id WHERE b.id = $1;
         `;
         const values = [bookingId];
         const client = await pool.connect();
