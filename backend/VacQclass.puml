@@ -1,0 +1,45 @@
+@startuml
+left to right direction
+package "Dentist"{
+    class "<<Application>>\nDentist" as DentistService{}
+
+    class "<<Resource>>\nBookings" as ResourceBookings{
+        <<GET>> +getBookingByUserID():Booking
+        <<POST>> +createBooking():Booking
+    }
+
+    class "<<Resource>>\nAdmin" as Admin{
+        <<GET>> +getAllBookingAdmin():Booking
+    }
+
+     class "<<Resource>>\nAdminBooking" as AdminBooking{
+        <<PUT>> +updateBookingAdmin():Booking
+        <<DELETE>> +deleteBookingAdmin():Booking
+    }
+
+    class "<<Resource>>\nBooking" as ResourceBooking {
+        <<GET>> +getBookingById(): Booking
+        <<PUT>> +updateBooking(): Booking
+        <<DELETE>> +deleteBooking(): void
+    }
+
+    class "<<Representation>>\nHospital" as RepresentationBooking {
+        -user_id
+        -dentist_id
+        -booking_date
+        -booking_status
+    }
+
+}
+
+DentistService ..> ResourceBookings:"/booking\n<<Path>>"
+ResourceBookings ..> ResourceBooking: "/{bookingId}\n<<Path>>"
+ResourceBooking ..> RepresentationBooking: "<<use>>"
+DentistService ..> Admin:"/admin/booking\n<<Path>>"
+Admin..> AdminBooking: "/{bookingId}\n<<Path>>"
+AdminBooking ..> RepresentationBooking: "<<use>>"
+
+@enduml
+
+
+

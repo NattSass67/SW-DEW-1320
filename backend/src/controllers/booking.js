@@ -5,6 +5,19 @@ const pool = require('../db/database');
 const createBooking = async (req, res) => {
     try {
         const { dentistId, bookingDate } = req.body;
+        const existingBookingQuery = `
+            SELECT id FROM bookings
+            WHERE user_id = $1 AND dentist_id = $2 AND booking_status = 'pending';
+        `;
+
+        const existingBookingValues = [req.user.id, dentistId];
+        const existingBookingClient = await pool.connect();
+        const existingBookingResult = await existingBookingClient.query(existingBookingQuery, existingBookingValues);
+
+        if (existingBookingResult.rows.length > 0) {
+            existingBookingClient.release();
+            return res.status(400).json({ error: 'You already have a pending booking with this dentist' });
+        }
 
         // Insert the new booking into the database
         const query = `
