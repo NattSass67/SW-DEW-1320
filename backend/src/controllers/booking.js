@@ -226,7 +226,8 @@ const deleteBookingAdmin = async (req, res) => {
         const deleteValues = [bookingId];
         await client.query(deleteQuery, deleteValues);
         client.release();
-        res.status(204).json({ success: true, message: 'Booking deleted successfully' });
+        res.status(200).json({ success: true, message: 'Booking deleted successfully' });
+
     } catch (error) {
         console.error('Error deleting booking:', error);
         res.status(500).json({ error: 'Internal Server Error' });

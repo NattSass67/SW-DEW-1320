@@ -5,6 +5,18 @@ const pool = require('../db/database');
 const register = async (req, res) => {
     try {
         const { name, telephone, email, password } = req.body;
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+
+        // Validate password format
+        const passwordRegex = /^.{6,}$/; // At least 6 characters long
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({ error: 'Invalid password format. Password must be at least 6 characters long.' });
+        }
+
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -59,6 +71,16 @@ const login = async (req, res) => {
     }
 };
 
+const logout = async (req, res) => {
+    try {
+        // Clear the token on the client side (handled by frontend)
+        res.status(200).json({ success: true, message: 'Logout successful' });
+    } catch (error) {
+        console.error('Error logging out user:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
 
 
-module.exports = { register, login };
+
+module.exports = { register, login, logout };
