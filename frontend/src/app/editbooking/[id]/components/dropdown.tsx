@@ -10,7 +10,7 @@ export default function Dropdown({ dentists, onSelect }: DropdownProps) {
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedId(event.target.value);
-    onSelect(selectedId);
+    onSelect(event.target.value);
   };
 
   return (
