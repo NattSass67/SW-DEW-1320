@@ -3,7 +3,14 @@ import React, { useEffect, useState } from 'react';
 import Dropdown from './components/dropdown';
 import { useRouter } from 'next/navigation';
 
-export default function Booking() {
+interface paramsProps {
+  params: {
+    id: string; // Assuming 'id' is a string property in params
+  };
+}
+
+
+export default function Booking({ params }: paramsProps) {
   const [dentistData, setdentistData] = useState([]);
   const [selectedDentistId, setSelectedDentistId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState('');
@@ -29,7 +36,7 @@ export default function Booking() {
 
       const userData = JSON.parse(storedUserData);
       const token = userData.token;
-      const response = await fetch('http://localhost:5000/api/dentist', {
+      const response = await fetch('http://localhost:5000/api/dentist/', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -77,7 +84,7 @@ export default function Booking() {
         const userData = JSON.parse(storedUserData);
         const token = userData.token;
 
-        const response = await fetch('http://localhost:5000/api/booking/', {
+        const response = await fetch(`http://localhost:5000/api/booking/${params.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -90,7 +97,7 @@ export default function Booking() {
         });
 
         if (response.ok) {
-          console.log('Booking created successfully');
+          console.log('Booking Edit successfully');
 
         } else {
           console.error('Failed to create booking');
@@ -109,7 +116,7 @@ export default function Booking() {
       <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
         <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
           <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-            Dental Booking
+            Edit Booking
           </h1>
           <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
             <div>
