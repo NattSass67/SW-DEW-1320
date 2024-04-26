@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 
 interface DropdownProps {
-  dentists: { id: number; name: string; yearsOfExperience: number; areaOfExpertise: string }[];
-  onSelect: (id: number) => void;
+  dentists: { id: string; name: string; experience: number; expertise: string }[];
+  onSelect: (id: string|null) => void;
 }
 
 export default function Dropdown({ dentists, onSelect }: DropdownProps) {
-  const [selectedId, setSelectedId] = useState<number | null>(null); // เพิ่ม state สำหรับเก็บค่า selectedId
+  const [selectedId, setSelectedId] = useState<string | null>(null); 
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = parseInt(event.target.value, 10);
-    setSelectedId(selectedId);
+    setSelectedId(event.target.value);
     onSelect(selectedId);
   };
 
@@ -29,11 +28,10 @@ export default function Dropdown({ dentists, onSelect }: DropdownProps) {
           </option>
         ))}
       </select>
-      {/* แสดงข้อมูลเมื่อมีการเลือก */}
       {selectedId && (
         <div className="mt-4">
-          <p className="text-gray-900 dark:text-white">Years of Experience: {dentists.find((dentist) => dentist.id === selectedId)?.yearsOfExperience}</p>
-          <p className="text-gray-900 dark:text-white">Area of Expertise: {dentists.find((dentist) => dentist.id === selectedId)?.areaOfExpertise}</p>
+          <p className="text-gray-900 dark:text-white">Years of Experience: {dentists.find((dentist) => dentist.id === selectedId)?.experience}</p>
+          <p className="text-gray-900 dark:text-white">Area of Expertise: {dentists.find((dentist) => dentist.id === selectedId)?.expertise}</p>
         </div>
       )}
     </div>

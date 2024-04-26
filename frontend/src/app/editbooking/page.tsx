@@ -1,37 +1,53 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Dropdown from './components/dropdown';
-
-const dentistData = [
-  {
-    id: 1,
-    name: 'Dr. John Doe',
-    yearsOfExperience: 15,
-    areaOfExpertise: 'General Dentistry',
-  },
-  {
-    id: 2,
-    name: 'Dr. Jane Smith',
-    yearsOfExperience: 20,
-    areaOfExpertise: 'Orthodontics',
-  },
-  {
-    id: 3,
-    name: 'Dr. Michael Johnson',
-    yearsOfExperience: 10,
-    areaOfExpertise: 'Pediatric Dentistry',
-  },
-  {
-    id: 4,
-    name: 'Dr. Sarah Lee',
-    yearsOfExperience: 12,
-    areaOfExpertise: 'Cosmetic Dentistry',
-  },
-];
+import { useRouter } from 'next/navigation';
 
 export default function Booking() {
-  const [selectedDentistId, setSelectedDentistId] = useState<number | null>(null);
+  const [dentistData, setdentistData] = useState([]);
+  const [selectedDentistId, setSelectedDentistId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState('');
+  const router = useRouter();
+
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isloggedin') === 'true';
+
+    if (!isLoggedIn) {
+      router.push('/signin');
+    } else {
+      fetchDentists();
+    }
+  }, []);
+
+
+  const fetchDentists = async () => {
+    try {
+      const storedUserData = localStorage.getItem('userData');
+      if (!storedUserData) {
+        return;
+      }
+
+      const userData = JSON.parse(storedUserData);
+      const token = userData.token;
+      const response = await fetch('http://localhost:5000/api/dentist', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data);
+        setdentistData(data.data);
+      } else {
+        console.error('Failed to fetch dentists');
+      }
+    } catch (error) {
+      console.error('Error fetching dentists:', error);
+    }
+  };
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = event.target.value;
@@ -46,17 +62,44 @@ export default function Booking() {
     }
   };
 
-  const handleDentistSelect = (id: number) => {
+  const handleDentistSelect = (id: string | null) => {
     setSelectedDentistId(id);
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // ป้องกันการรีเฟรชหน้าเว็บ
-
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (selectedDentistId && selectedDate) {
-      console.log("Selected Dentist ID:", selectedDentistId);
-      console.log("Selected Date:", selectedDate);
+      try {
+        const storedUserData = localStorage.getItem('userData');
+        if (!storedUserData) {
+          return;
+        }
+        const userData = JSON.parse(storedUserData);
+        const token = userData.token;
+
+        const response = await fetch('http://localhost:5000/api/booking/', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            dentistId: selectedDentistId,
+            bookingDate: selectedDate,
+          }),
+        });
+
+        if (response.ok) {
+          console.log('Booking created successfully');
+
+        } else {
+          console.error('Failed to create booking');
+        }
+      } catch (error) {
+        console.error('Error creating booking:', error);
+      }
     } else {
+      console.log(selectedDentistId, selectedDate)
       alert('โปรดเลือกหมอและวันที่ก่อนทำการจอง');
     }
   };
@@ -66,7 +109,7 @@ export default function Booking() {
       <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
         <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
           <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-            Edit Booking
+            Dental Booking
           </h1>
           <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
             <div>
@@ -85,7 +128,7 @@ export default function Booking() {
                 required
               />
             </div>
-            <button type="submit" className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Edit</button>
+            <button type="submit" className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Book</button>
           </form>
         </div>
       </div>
