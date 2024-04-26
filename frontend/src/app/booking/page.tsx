@@ -18,9 +18,9 @@ export default function Booking() {
     } else {
       fetchBookingData();
       fetchDentists();
-      
     }
   }, []);
+
 
   const fetchBookingData = async () => {
     try {
