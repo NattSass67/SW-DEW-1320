@@ -1,39 +1,90 @@
 "use client";
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import React from 'react';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
-export default function Page() {
-  const mockData = [
-    {
-      dentist: 'Dentist 1',
-      bookingDate: '30/4/2567',
-      bookingStatus: 'Ongoing',
-    },
-    {
-      dentist: 'Dentist 1',
-      bookingDate: '13/4/2567',
-      bookingStatus: 'Completed',
-    },
-    {
-      dentist: 'Dentist 2',
-      bookingDate: '12/4/2567',
-      bookingStatus: 'Completed',
-    },
-    {
-      dentist: 'Dentist 1',
-      bookingDate: '11/4/2567',
-      bookingStatus: 'Completed',
-    },
-    {
-      dentist: 'Dentist 2',
-      bookingDate: '10/4/2567',
-      bookingStatus: 'Completed',
-    },
-  ];
+interface BookingItem {
+  id: string;
+  user_id: string;
+  dentist_id: string;
+  booking_date: string;
+  booking_status: string;
+  dentist_name: string;
+  dentist_experience: number;
+  dentist_expertise: string;
+}
 
-  const handleDelete = (index: number) => {
-    console.log('Delete action for index:', index);
+export default function HistoryPage() {
+  const router = useRouter();
+  const [bookingData, setBookingData] = useState([]);
+
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isloggedin') === 'true';
+
+    if (!isLoggedIn) {
+      router.push('/signin');
+    } else {
+      fetchBookingData();
+    }
+  }, []);
+
+  const fetchBookingData = async () => {
+    try {
+      const storedUserData = localStorage.getItem('userData');
+      if (!storedUserData) {
+        return;
+      }
+
+      const userData = JSON.parse(storedUserData);
+      const token = userData.token;
+
+      const response = await fetch('http://localhost:5000/api/booking', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data)
+        setBookingData(data.data);
+      } else {
+        console.error('Failed to fetch booking data');
+      }
+    } catch (error) {
+      console.error('Error fetching booking data:', error);
+    }
+  };
+
+  const handleDelete = async (id: any) => {
+    try {
+      const storedUserData = localStorage.getItem('userData');
+      if (!storedUserData) {
+        console.log('User data not found in localStorage');
+        return;
+      }
+
+      const userData = JSON.parse(storedUserData);
+      const token = userData.token;
+      const response = await fetch(`http://localhost:5000/api/booking/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const updatedData = bookingData.filter((item: BookingItem) => item.id !== id);
+        setBookingData(updatedData);
+        console.log('Booking deleted successfully');
+      } else {
+        console.error('Failed to delete booking');
+      }
+    } catch (error) {
+      console.error('Error deleting booking:', error);
+    }
   };
 
   return (
@@ -58,38 +109,36 @@ export default function Page() {
             </tr>
           </thead>
           <tbody>
-            {mockData.map((item, index) => (
-              <tr
-                key={index}
-                className={`${index % 2 === 1 ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'
-                  } border-b dark:border-gray-700`}
-              >
-                <th scope="row" className="px-7 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                  {item.dentist}
-                </th>
-                <td className="px-7 py-4">{item.bookingDate}</td>
-                <td className="px-7 py-4">{item.bookingStatus}</td>
-                <td className="px-7 py-4">
-                  {item.bookingStatus === 'Ongoing' ? (
-                    <div className="flex space-x-2">
-                      <button
-                        className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                      >
-                        <Link href="/editbooking">Edit</Link>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(index)}
-                        className="font-medium text-red-600 dark:text-red-500 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ) : (
-                    <span className="text-gray-400">Can't edit</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+            {bookingData.length > 0 ? (
+              bookingData.map((item: BookingItem) => (
+                <tr key={item.id} className={`bg-white dark:bg-gray-900 border-b dark:border-gray-700`}>
+                  <td className="px-7 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    {item.dentist_name}
+                  </td>
+                  <td className="px-7 py-4">{item.booking_date}</td>
+                  <td className="px-7 py-4">{item.booking_status}</td>
+                  <td className="px-7 py-4">
+                    {item.booking_status === 'pending' ? (
+                      <div className="flex space-x-2">
+                        <button className="font-medium text-blue-600 dark:text-blue-500 hover:underline">
+                          <Link href={`/editbooking/${item.id}`}>Edit</Link>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="font-medium text-red-600 dark:text-red-500 hover:underline"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">Can't edit</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              null
+            )}
           </tbody>
         </table>
       </div>

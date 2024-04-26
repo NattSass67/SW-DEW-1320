@@ -1,8 +1,11 @@
 "use client";
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 function Page() {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     name: '',
     phoneNumber: '',
@@ -11,7 +14,7 @@ function Page() {
     confirmPassword: '',
   });
 
-  const handleInputChange = (e: { target: { name: any; value: any; }; }) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
@@ -19,14 +22,38 @@ function Page() {
     });
   };
 
-  const handleCreateAccount = (e: { preventDefault: () => void; }) => {
-    e.preventDefault(); // Prevent form submission
-    console.log('Form Data:', formData);
-    // Additional logic or actions can be added here (e.g., API call to create account)
+  const handleCreateAccount = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log(formData);
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          telephone: formData.phoneNumber,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Account Creation Successful:', data);
+        router.push("/signin");
+      } else {
+        const errorData = await response.json();
+        console.error('Account Creation Error:', errorData);
+      }
+    } catch (error) {
+      console.error('Account Creation Error:', error);
+    }
   };
 
   return (
-    <section className="w-full h-full bg-gray-50 dark:bg-gray-900">
+    <section className="w-full h-full bg-primary-200 dark:bg-gray-900">
       <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto lg:py-0">
         <a href="#" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
           <Image className="w-8 h-8 mr-2" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg" alt="logo" width={32} height={32} />

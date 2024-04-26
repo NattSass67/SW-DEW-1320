@@ -4,11 +4,17 @@ import Dropdown from './components/dropdown';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function Booking() {
+interface paramsProps {
+  params: {
+    id: string; // Assuming 'id' is a string property in params
+  };
+}
+
+
+export default function Booking({ params }: paramsProps) {
   const [dentistData, setdentistData] = useState([]);
   const [selectedDentistId, setSelectedDentistId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState('');
-  const [bookingData, setBookingData] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -17,41 +23,10 @@ export default function Booking() {
     if (!isLoggedIn) {
       router.push('/signin');
     } else {
-      fetchBookingData();
       fetchDentists();
     }
   }, []);
 
-
-  const fetchBookingData = async () => {
-    try {
-      const storedUserData = localStorage.getItem('userData');
-      if (!storedUserData) {
-        return;
-      }
-
-      const userData = JSON.parse(storedUserData);
-      const token = userData.token;
-
-      const response = await fetch('http://localhost:5000/api/booking', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log(data)
-        setBookingData(data.data);
-      } else {
-        console.error('Failed to fetch booking data');
-      }
-    } catch (error) {
-      console.error('Error fetching booking data:', error);
-    }
-  };
 
   const fetchDentists = async () => {
     try {
@@ -62,7 +37,7 @@ export default function Booking() {
 
       const userData = JSON.parse(storedUserData);
       const token = userData.token;
-      const response = await fetch('http://localhost:5000/api/dentist', {
+      const response = await fetch('http://localhost:5000/api/dentist/', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -110,8 +85,8 @@ export default function Booking() {
         const userData = JSON.parse(storedUserData);
         const token = userData.token;
 
-        const response = await fetch('http://localhost:5000/api/booking', {
-          method: 'POST',
+        const response = await fetch(`http://localhost:5000/api/booking/${params.id}`, {
+          method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
@@ -123,8 +98,9 @@ export default function Booking() {
         });
 
         if (response.ok) {
-          console.log('Booking created successfully');
+          console.log('Booking Edit successfully');
           router.push('/history');
+
         } else {
           console.error('Failed to create booking');
         }
@@ -142,7 +118,7 @@ export default function Booking() {
       <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
         <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
           <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-            Dental Booking
+            Edit Booking
           </h1>
           <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
             <div>
@@ -162,7 +138,7 @@ export default function Booking() {
               />
             </div>
             <button type="submit" className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
-              Book
+              Edit
             </button>
           </form>
         </div>

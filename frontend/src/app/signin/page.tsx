@@ -1,8 +1,9 @@
 "use client";
 import React, { useState } from 'react';
-import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function SignIn() {
+  const router=useRouter();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -16,21 +17,45 @@ export default function SignIn() {
     });
   };
 
-  const handleSubmit = (e: { preventDefault: () => void; }) => {
-    e.preventDefault(); // หยุดการส่งฟอร์มเพื่อป้องกันการรีโหลดหน้า
-    console.log('Form Data:', formData);
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Login Successful:', data);
+        localStorage.setItem('userData', JSON.stringify(data));
+        localStorage.setItem('isloggedin', 'true');
+        router.push("/history");
+        
+      } else {
+        const errorData = await response.json();
+        console.error('Login Error:', errorData);
+      }
+    } catch (error) {
+      console.error('Login Error:', error);
+    }
   };
 
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+    <section className="bg-primary-200 dark:bg-gray-900 min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md dark:bg-gray-800">
         <div className="text-center mb-6">
           <a href="#" className="flex items-center justify-center text-2xl font-semibold text-gray-900 dark:text-white">
-            <Image src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg" alt="logo" width={32} height={32} />
-            <span className="ml-2">Flowbite</span>
+            <span className="ml-2">Dentist Booking</span>
           </a>
           <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white mt-4">
-            Sign in to your account
+            Sign in
           </h1>
         </div>
         <form onSubmit={handleSubmit}>
